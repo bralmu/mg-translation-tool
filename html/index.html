@@ -1,0 +1,38 @@
+<html>
+<head>
+    <meta charset="utf-8"> 
+    <title>Mad Gear Translation Tool</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="scripts.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css"> 
+</head>
+<body onload="onload()">
+<h1>Mad Gear Translation Tool</h1>
+<div id='login_block'>
+<form>
+Username: <input type="password" name="pwd" onkeydown="if (event.keyCode == 13) { login(); return false; }">
+<input type="button" value="SIGN IN" onclick="login()">
+</form>
+<p>If you have any problem contact the person who gave you access.</p>
+</div>
+<div id='translation_header_block'>
+<form>
+Translate <strong>Ninja Trials</strong> to
+<select onchange="setLanguage(this)">
+  <option value="none" selected="selected">Please select one</option>
+  <option value="zh">Chinese</option>
+  <option value="fr">French</option>
+  <option value="de">German</option>
+  <option value="jp">Japanese</option>
+  <option value="pt">Portuguese</option>
+  <option value="ru">Russian</option>
+  <option value="es">Spanish</option>
+</select>
+</form>
+<p><button type="button">SAVE TRANSLATION</button> Remember to save often. Don't refresh this page, unsaved changes will be lost.<br><input type="checkbox" name="autosave" value="true"> Mark this checkbox to automatically save your work every 5 minutes.</p>
+<hr>
+</div>
+<div id='lines_block'>
+</div>
+</body>
+</html>

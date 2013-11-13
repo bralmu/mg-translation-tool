@@ -1,9 +1,11 @@
 #!/usr/bin/python
 #-*-  coding:utf-8 -*-
 import cgitb; cgitb.enable(format = 'text')
+import os
 from xml.dom.minidom import parseString
 import xml.etree.cElementTree as ET
 import urllib2
+import urllib
 import json
 
 
@@ -169,14 +171,17 @@ def operation_getlanguages(r):
 
 def operation_read(r):
     lang_code = r['data']
-    translation_lines = read_xml('strings-%s.xml' % lang_code)
-    lines_original = []
-    lines_translation = []
-    for line in source_lines:
-        lines_original.append(line.serialize())
-    for line in translation_lines:
-        lines_translation.append(line.serialize())
-    encapsulate_answer(False, {'source': lines_original, lang_code: lines_translation})
+    if len(lang_code) is not 2:
+        encapsulate_answer(True, "Invalid language code.")
+    else:
+        translation_lines = read_xml('strings-%s.xml' % lang_code)
+        lines_original = []
+        lines_translation = []
+        for line in source_lines:
+            lines_original.append(line.serialize())
+        for line in translation_lines:
+            lines_translation.append(line.serialize())
+        encapsulate_answer(False, {'source': lines_original, lang_code: lines_translation})
 
 
 def operation_write(r):
@@ -199,18 +204,24 @@ def answer(request):
     if r['operation'] == 'login':
         operation_login(r)
     elif r['operation'] == 'read':
+        download_source()
+        process_source()
         operation_read(r)
     elif r['operation'] == 'write':
+        download_source()
+        process_source()
         operation_write(r)
     elif r['operation'] == 'getlanguages':
         operation_getlanguages(r)
     else:
         encapsulate_answer(True, "Requested operation is unrecognized.")
 
-download_source()
-process_source()
 
-#request = json.dumps({'user': 'Pepe', 'operation': 'login'})
+#request = json.dumps({'user': 'Bruno', 'operation': 'login'})
 #request = json.dumps({'user': 'Pepe', 'operation': 'getlanguages'})
-request = json.dumps({'user': 'superusuario', 'operation': 'read', 'data': 'es'})
+#request = json.dumps({'user': 'superusuario', 'operation': 'read', 'data': 'es'})
+
+request = urllib.unquote(os.environ.get("QUERY_STRING", "No Query String in url"))
 answer(request)
+
+

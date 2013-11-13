@@ -1,0 +1,17 @@
+body {
+    background-color: rgb(180,170,217);
+}
+input.done {
+    background-color: rgb(192,255,192);
+    width: 900px;
+    margin-bottom: 10px;
+}
+input.incomplete {
+    background-color: rgb(255,192,192);
+    width: 900px;
+    margin-bottom: 10px;
+}
+p {
+    margin-top: 20px;
+    margin-bottom: 0;
+}
