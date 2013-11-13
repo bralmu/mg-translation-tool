@@ -1,8 +1,10 @@
 #!/usr/bin/python
 #-*-  coding:utf-8 -*-
 import cgitb; cgitb.enable(format = 'text')
+import sys
 import os
-from xml.dom.minidom import parseString
+from xml.dom.minidom import parseString, parse
+from xml.parsers import expat
 import xml.etree.cElementTree as ET
 import urllib2
 import urllib
@@ -59,6 +61,17 @@ users.append(User("superusuario", LANGUAGES.values()))
 source_data = None
 source_lines = None
 
+def encapsulate_answer(error, data):
+    if error:
+        print json.dumps({'error': 'true', 'data': data})
+    else:
+        print json.dumps({'error': 'false', 'data': data})
+
+
+def debugger(message):
+    encapsulate_answer(True, message)
+    sys.exit(0)
+
 
 def download_source():
     global source_data
@@ -93,10 +106,10 @@ def write_xml(filename, source_lines):
     for line in source_lines:
         string = ET.SubElement(resources, "string")
         string.set("name", line.name)
-        string.set("translatable", line.translatable)
+        #string.set("translatable", line.translatable)
         string.text = line.text
-    xml_content = ET.tostring(resources, encoding='utf8', method='xml')
-    file = open(WORKINGPATH+'strings2.xml', 'w')
+    xml_content = ET.tostring(resources, encoding='utf-8', method='xml')
+    file = open(WORKINGPATH+filename, 'w')
     file.truncate()
     file.write(xml_content)
     file.close()
@@ -115,6 +128,7 @@ def read_xml(filename):
     try:
         dom = parseString(file_data)
     except:
+        #debugger("Error parsing the xml of this language. Exception is\n%r" % sys.exc_info()[0])
         return source_lines
     elements = dom.getElementsByTagName('string')
     for e in elements:
@@ -124,6 +138,7 @@ def read_xml(filename):
         except AttributeError:
             text = ""
         source_lines.append(Line(name, text, None, None, None, None))
+    #debugger("There are %d elements with string tag on %s file\nand %d lines have been created." % (len(elements), filename, len(source_lines)))
     return source_lines
 
 
@@ -140,13 +155,6 @@ def user_has_language_code(username, lang_code):
         if l.code == lang_code:
             return True
     return False
-
-
-def encapsulate_answer(error, data):
-    if error:
-        print json.dumps({'error': 'true', 'data': data})
-    else:
-        print json.dumps({'error': 'false', 'data': data})
 
 
 def operation_login(r):
@@ -186,7 +194,8 @@ def operation_read(r):
 
 def operation_write(r):
     lang_code = r['data']['language_code']
-    if not user_has_language_code():
+    username = r['user']
+    if not user_has_language_code(username, lang_code):
         encapsulate_answer(True, "The user is not authorized to save translations in this language.")
     else:
         lines = []
@@ -199,7 +208,6 @@ def operation_write(r):
 
 
 def answer(request):
-    print "Content-type:application/json\r\n\r\n"
     r = json.loads(request)
     if r['operation'] == 'login':
         operation_login(r)
@@ -217,11 +225,13 @@ def answer(request):
         encapsulate_answer(True, "Requested operation is unrecognized.")
 
 
-#request = json.dumps({'user': 'Bruno', 'operation': 'login'})
-#request = json.dumps({'user': 'Pepe', 'operation': 'getlanguages'})
-#request = json.dumps({'user': 'superusuario', 'operation': 'read', 'data': 'es'})
-
+"""
+EXAMPLES OF REQUESTS
+request = json.dumps({'user': 'Bruno', 'operation': 'login'})
+request = json.dumps({'user': 'Pepe', 'operation': 'getlanguages'})
+request = json.dumps({'user': 'John', 'operation': 'read', 'data': 'es'})
+"""
+print "Content-type:application/json\r\n\r\n"
 request = urllib.unquote(os.environ.get("QUERY_STRING", "No Query String in url"))
 answer(request)
-
 
