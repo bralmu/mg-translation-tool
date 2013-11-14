@@ -3,8 +3,10 @@ var debug_lastrequest;
 var debug_lastanswer;
 var username = "none";
 var languagecode = "none";
+
 function onload() {
     document.getElementById("translation_header_block").style.visibility = 'hidden';
+    window.setInterval(checkFilledLines, 1000);
 }
 
 function login() {
@@ -93,7 +95,15 @@ function writeLines() {
 }
 
 function checkFilledLines() {
-    // TODO para todos los input: input.setAttribute("class", "done"/"incomplete");
+    var inputs = document.getElementsByTagName("input");
+    for (i in inputs) {
+        if (inputs[i].type == "text" && inputs[i].value == "") {
+            inputs[i].setAttribute("class", "incomplete");
+        }
+        else if (inputs[i].type == "text") {
+            inputs[i].setAttribute("class", "done");
+        }
+    }
 }
 
 function send(request) {
