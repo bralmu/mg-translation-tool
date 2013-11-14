@@ -31,6 +31,20 @@ function setLanguage(sel) {
     send(request);
 }
 
+function createSection(name) {
+    var h3 = document.createElement("h3");
+    h3.innerHTML = name;
+    var lines_block = document.getElementById("lines_block");
+    lines_block.appendChild(h3);
+}
+
+function createSuperSection(name) {
+    var h2 = document.createElement("h2");
+    h2.innerHTML = name;
+    var lines_block = document.getElementById("lines_block");
+    lines_block.appendChild(h2);
+}
+
 function createLine(name, text, translated_text, translatable, context) {
     var strong = document.createElement("strong");
     strong.innerHTML = text + " ";
@@ -56,12 +70,26 @@ function createLines(json_data) {
     number_of_lines_source = json_data['source'].length;
     number_of_lines_translated = json_data[languagecode].length;
     alert(number_of_lines_source + " lines in source and " + number_of_lines_translated + " lines in translation.");
+    lastsection = false;
+    lastsupersection = false;
     for (line in json_data['source']) {
         var name = json_data['source'][line]['name'];
         var text = json_data['source'][line]['text'];
         var translatable = json_data['source'][line]['translatable'];
         var translated_text = searchTranslatedText(name, json_data[languagecode]);
         var context = json_data['source'][line]['context'];
+        var supersection = json_data['source'][line]['supersection'];
+        if (supersection != lastsupersection) {
+            if (lastsupersection != false) {
+                createSuperSection(supersection);
+            }            
+            lastsupersection = supersection;
+        }
+        var section = json_data['source'][line]['section'];
+        if (section != lastsection) {
+            createSection(section);
+            lastsection = section;
+        }
         createLine(name, text, translated_text, translatable, context);
     }
 }
