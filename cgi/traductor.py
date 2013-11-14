@@ -3,6 +3,7 @@
 import cgitb; cgitb.enable(format = 'text')
 import sys
 import os
+from time import gmtime, strftime
 from xml.dom.minidom import parseString, parse
 from xml.parsers import expat
 import xml.etree.cElementTree as ET
@@ -209,12 +210,31 @@ def operation_getlanguages(r):
         encapsulate_answer(True, "User not found.")
 
 
+def getLastVersion(langcode):
+    onlyfiles = [ f for f in os.listdir(WORKINGPATH) if os.path.isfile(os.path.join(WORKINGPATH,f)) ]
+    lastversion = 0
+    for f in onlyfiles:
+        version = 0
+        try:
+            prefix = 'strings-%s-' % langcode
+            position = f.index(prefix)
+            version = int(f[len(prefix) : len(f) - 4])
+            if version > lastversion:
+                lastversion = version
+        except ValueError:
+            pass
+    if (lastversion is 0):
+        lastversion = int(strftime("%Y%m%d%H%M%S", gmtime()))
+    return lastversion
+
+
 def operation_read(r):
     lang_code = r['data']
     if len(lang_code) is not 2:
         encapsulate_answer(True, "Invalid language code.")
     else:
-        translation_lines = read_xml('strings-%s.xml' % lang_code)
+        lastVersion = getLastVersion(lang_code)
+        translation_lines = read_xml('strings-%s-%d.xml' % (lang_code, lastVersion))
         lines_original = []
         lines_translation = []
         for line in source_lines:
@@ -235,7 +255,8 @@ def operation_write(r):
             name = l['name']
             text = l['text']
             lines.append(Line(name, text, None, None, None, None))
-        write_xml('strings-%s.xml' % lang_code, lines)
+        current_time = strftime("%Y%m%d%H%M%S", gmtime())
+        write_xml('strings-%s-%s.xml' % (lang_code, current_time), lines)
         encapsulate_answer(False, "Translation saved.")
 
 
