@@ -79,26 +79,58 @@ def download_source():
     source_data = response.read()
 
 
-# http://stackoverflow.com/questions/8732165/python-xml-processing-after-a-specific-comment
 def process_source():
     global source_lines
     source_lines = []
     dom = parseString(source_data)
-    elements = dom.getElementsByTagName('string')
-    for e in elements:
-        name = e.getAttributeNode('name').nodeValue
-        try:
-            translatable = e.getAttributeNode('translatable').nodeValue
-        except AttributeError:
-            translatable = "true"
-        context = None
-        section = None
-        supersection = None
-        try:
-            text = e.firstChild.data
-        except AttributeError:
-            text = ""
-        source_lines.append(Line(name, text, translatable, context, section, supersection))
+    nodes = dom.documentElement.childNodes
+    lastsection = None
+    lastsupersection = None
+    lastcontext = None
+    sectionheader = 'Group-Start: '
+    sectiontail = 'Group-End: '
+    supersectionheader = 'MegaGroup-Start: '
+    supersectiontail = 'MegaGroup-End: '
+    for node in nodes:
+        if node.nodeType is node.COMMENT_NODE:
+            notacontextcomment = False
+            try:
+                sectionStartPosition = node.data.index(sectionheader)
+                lastsection = node.data[sectionStartPosition+len(sectionheader):len(node.data)]
+                notacontextcomment = True
+            except ValueError:
+                pass
+            try:
+                sectionStartPosition = node.data.index(sectiontail)
+                lastsection = None
+                notacontextcomment = True
+            except ValueError:
+                pass
+            try:
+                supersectionStartPosition = node.data.index(supersectionheader)
+                lastsupersection = node.data[supersectionStartPosition+len(supersectionheader):len(node.data)]
+                notacontextcomment = True
+            except ValueError:
+                pass
+            try:
+                supersectionStartPosition = node.data.index(supersectiontail)
+                lastsupersection = None
+                notacontextcomment = True
+            except ValueError:
+                pass
+            if not notacontextcomment:
+                lastcontext = node.data
+        if node.nodeType is node.ELEMENT_NODE:
+            name = node.getAttributeNode('name').nodeValue
+            try:
+                text = node.firstChild.data
+            except AttributeError:
+                text = ""
+            try:
+                translatable = node.getAttributeNode('translatable').nodeValue
+            except AttributeError:
+                translatable = "true"
+            source_lines.append(Line(name, text, translatable, lastcontext, lastsection, lastsupersection))
 
 
 def write_xml(filename, source_lines):
