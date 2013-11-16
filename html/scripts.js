@@ -1,4 +1,7 @@
+// Configuration
 var CGI_URL = "http://localhost/cgi-bin/traductor";
+var TRANSLATIONS_DOWNLOAD_URL = "ftp://brunoxe.com/translations/";
+
 var debug_lastrequest;
 var debug_lastanswer;
 var username = "none";
@@ -7,6 +10,7 @@ var languagecode = "none";
 function onload() {
     document.getElementById("translation_header_block").style.visibility = 'hidden';
     window.setInterval(checkFilledLines, 1000);
+    document.getElementById("downloadlink").href = TRANSLATIONS_DOWNLOAD_URL;
 }
 
 function login() {
@@ -158,8 +162,6 @@ function send(request) {
         }
     }
     debug_lastrequest = CGI_URL+"?"+r;
-    // NOTE: set LimitRequestLine 80000 in apache to support longer xml
-    // Default is 8190. You will likely get an error 414 (Request-URI Too Large)
     xmlhttp.open("get", CGI_URL+"?"+r, true);
     xmlhttp.send();
 }
