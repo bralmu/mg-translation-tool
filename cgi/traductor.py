@@ -63,6 +63,7 @@ source_data = None
 source_lines = None
 
 def encapsulate_answer(error, data):
+    """Returns a server answer as JSON"""
     if error:
         print json.dumps({'error': 'true', 'data': data})
     else:
@@ -70,17 +71,20 @@ def encapsulate_answer(error, data):
 
 
 def debugger(message):
+    """Creates an error server response. Useful for debugging."""
     encapsulate_answer(True, message)
     sys.exit(0)
 
 
 def download_source():
+    """Downloads the source xml"""
     global source_data
     response = urllib2.urlopen(SOURCE_URL)
     source_data = response.read()
 
 
 def process_source():
+    """Creates all source lines from source xml"""
     global source_lines
     source_lines = []
     dom = parseString(source_data)
@@ -135,6 +139,7 @@ def process_source():
 
 
 def write_xml(filename, source_lines):
+    """Saves lines to an xml file"""
     resources = ET.Element("resources")
     for line in source_lines:
         string = ET.SubElement(resources, "string")
@@ -149,6 +154,7 @@ def write_xml(filename, source_lines):
 
 
 def read_xml(filename):
+    """Creates all lines from a xml file"""
     source_lines = []
     try:
         file = open(WORKINGPATH+filename, 'r')
@@ -176,6 +182,7 @@ def read_xml(filename):
 
 
 def get_user_by_name(username):
+    """Returns a user"""
     for user in users:
         if user.name == username:
             return user
@@ -183,6 +190,7 @@ def get_user_by_name(username):
 
 
 def user_has_language_code(username, lang_code):
+    """Checks if a user is autorized to modify a language"""
     user = get_user_by_name(username)
     for l in user.languages:
         if l.code == lang_code:
@@ -191,6 +199,7 @@ def user_has_language_code(username, lang_code):
 
 
 def operation_login(r):
+    """Sends in a response whether the user exists or not."""
     # this is vulnerable to brute force attack, must implement
     # limited requests (10 requests/minute for example)
     if get_user_by_name(r['user']):
@@ -200,6 +209,8 @@ def operation_login(r):
 
 
 def operation_getlanguages(r):
+    """Sends in a response the languages this user can modify."""
+    # NOT TESTED OR USED YET
     user_found = False
     for user in users:
         if user.name == r['user']:
@@ -211,6 +222,7 @@ def operation_getlanguages(r):
 
 
 def getLastVersion(langcode):
+    """Returns the last version available of a language translation"""
     onlyfiles = [ f for f in os.listdir(WORKINGPATH) if os.path.isfile(os.path.join(WORKINGPATH,f)) ]
     lastversion = 0
     for f in onlyfiles:
@@ -229,6 +241,7 @@ def getLastVersion(langcode):
 
 
 def operation_read(r):
+    """Sends server answer with original lines and last translation lines"""
     lang_code = r['data']
     if len(lang_code) is not 2:
         encapsulate_answer(True, "Invalid language code.")
@@ -245,6 +258,7 @@ def operation_read(r):
 
 
 def operation_write(r):
+    """Writes the translation received to a xml file."""
     lang_code = r['data']['language_code']
     username = r['user']
     if not user_has_language_code(username, lang_code):
@@ -261,6 +275,7 @@ def operation_write(r):
 
 
 def answer(request):
+    """Answers client requests."""
     r = json.loads(request)
     if r['operation'] == 'login':
         operation_login(r)
