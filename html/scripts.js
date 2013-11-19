@@ -13,6 +13,12 @@ function onload() {
     document.getElementById("downloadlink").href = TRANSLATIONS_DOWNLOAD_URL;
 }
 
+function activate_refresh_warning() {
+    window.onbeforeunload = function(event) {
+        return confirm("Unsaved changes will be lost. Are you sure?");
+    };
+}
+
 function login() {
     username = document.getElementsByName("pwd")[0].value;
     var request = {'user': username, 'operation': 'login'};
@@ -151,6 +157,7 @@ function send(request) {
             else if (request['operation'] == 'login') {
                 remove_login_block();
                 show_translation_header_block();
+                activate_refresh_warning();
             }
             else if (request['operation'] == 'read') {
                 destroyLines();
