@@ -11,12 +11,19 @@ function onload() {
     document.getElementById("translation_header_block").style.visibility = 'hidden';
     window.setInterval(checkFilledLines, 1000);
     document.getElementById("downloadlink").href = TRANSLATIONS_DOWNLOAD_URL;
+    window.setInterval(autosave, 300000);
 }
 
 function activate_refresh_warning() {
     window.onbeforeunload = function(event) {
         return confirm("Unsaved changes will be lost. Are you sure?");
     };
+}
+
+function autosave() {
+    if (document.getElementsByName("autosave")[0].checked) {
+        writeLines();
+    }
 }
 
 function login() {
